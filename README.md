@@ -24,6 +24,7 @@ Recommended versions:
 
 ## Features
 
+- **Fully Customizable via Fuzzy Config** — Every setting can be adjusted to fit your server's needs
 - Adds integration between **LevelZ** and **MT Inventory Weight**
 - Uses the player's **overall LevelZ level** to modify max inventory weight
 - Uses a configurable **LevelZ skill** to modify max inventory weight
