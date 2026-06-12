@@ -1,0 +1,8 @@
+{
+  "skill.levelz.carrying": "Carrying",
+  "skill.levelz.carrying.0": "Increases your maximum carrying.",
+  "skill.levelz.carrying.1": "This skill is used by LevelZ Inventory Weight.",
+  "skill.levelz.carrying.2": "Depending on server config, it can use ",
+  "skill.levelz.carrying.3": "either a formula modifier or the ",
+  "skill.levelz.carrying.4": "Inventory Weight attribute."
+}

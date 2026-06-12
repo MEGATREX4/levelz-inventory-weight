@@ -10,4 +10,4 @@ pluginManagement {
 }
 
 // Should match your modid
-rootProject.name = 'levelz-inventory-weight'
+rootProject.name = 'levelz_inventoryweight'
