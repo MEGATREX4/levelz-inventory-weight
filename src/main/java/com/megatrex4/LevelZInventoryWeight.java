@@ -3,17 +3,16 @@ package com.megatrex4;
 import com.megatrex4.api.v1.InventoryWeightEvents;
 import com.megatrex4.config.LevelZInventoryWeightConfig;
 import com.megatrex4.config.ModConfigs;
-import com.megatrex4.levelz.DynamicLevelZSkillManager;
 import com.megatrex4.levelz.LevelZSkillAccess;
 import net.fabricmc.api.ModInitializer;
-import net.levelz.access.LevelManagerAccess;
-import net.levelz.level.LevelManager;
-import net.levelz.level.PlayerSkill;
+import net.levelz.access.PlayerStatsManagerAccess;
+import net.levelz.stats.PlayerStatsManager;
+import net.levelz.stats.Skill;
 import net.minecraft.server.network.ServerPlayerEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.OptionalInt;
+import java.util.Optional;
 
 public class LevelZInventoryWeight implements ModInitializer {
 
@@ -23,8 +22,6 @@ public class LevelZInventoryWeight implements ModInitializer {
 	@Override
 	public void onInitialize() {
 		ModConfigs.init();
-
-		DynamicLevelZSkillManager.register();
 
 		InventoryWeightEvents.MODIFY_MAX_WEIGHT.register(LevelZInventoryWeight::modifyMaxWeight);
 
@@ -38,13 +35,14 @@ public class LevelZInventoryWeight implements ModInitializer {
 			return currentMaxWeight;
 		}
 
-		LevelManager levelManager = ((LevelManagerAccess) player).getLevelManager();
+		PlayerStatsManager statsManager =
+				((PlayerStatsManagerAccess) player).getPlayerStatsManager();
 
 		float additive = 0.0f;
 		float multiplier = 1.0f;
 
 		if (config.overallLevel.enabled) {
-			int overallLevel = Math.max(0, levelManager.getOverallLevel());
+			int overallLevel = Math.max(0, statsManager.getOverallLevel());
 
 			additive += overallLevel * config.overallLevel.additivePerLevel;
 
@@ -54,11 +52,8 @@ public class LevelZInventoryWeight implements ModInitializer {
 			);
 		}
 
-		if (
-				config.skill.enabled
-						&& config.skill.capacityMode == LevelZInventoryWeightConfig.SkillCapacityMode.EVENT_MODIFIER
-		) {
-			int skillLevel = Math.max(0, getConfiguredSkillLevel(levelManager, config));
+		if (config.skill.enabled) {
+			int skillLevel = Math.max(0, getConfiguredSkillLevel(statsManager, config));
 
 			additive += skillLevel * config.skill.additivePerLevel;
 
@@ -74,23 +69,15 @@ public class LevelZInventoryWeight implements ModInitializer {
 	}
 
 	private static int getConfiguredSkillLevel(
-			LevelManager levelManager,
+			PlayerStatsManager statsManager,
 			LevelZInventoryWeightConfig.Server config
 	) {
-		int skillId = config.skill.skillIdOverride;
+		Optional<Skill> skill = LevelZSkillAccess.getSkillByKey(config.skill.skillKey);
 
-		if (skillId < 0) {
-			OptionalInt resolvedSkillId = LevelZSkillAccess.getSkillIdByKey(config.skill.skillKey);
-
-			if (resolvedSkillId.isEmpty()) {
-				return 0;
-			}
-
-			skillId = resolvedSkillId.getAsInt();
+		if (skill.isEmpty()) {
+			return 0;
 		}
 
-		PlayerSkill playerSkill = levelManager.getPlayerSkills().get(skillId);
-
-		return playerSkill == null ? 0 : playerSkill.getLevel();
+		return statsManager.getSkillLevel(skill.get());
 	}
 }
